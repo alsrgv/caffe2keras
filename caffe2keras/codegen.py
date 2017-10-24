@@ -8,6 +8,7 @@ from keras.models import Model  # noqa
 
 indent = 4
 ret_model = 'ret_model'
+max_var_len = 12
 
 
 def varname(obj):
@@ -22,6 +23,8 @@ def varname(obj):
 class CodeGenerator(object):
     '''CodeGenerator object is a passthrough for printing code to generate the
        objects, while actaully generating the objects.'''
+    _varname_registry = {}
+    _var_count = 0
 
     class StringFunctor(object):
         '''StringFunctor is a callable object that prints itself when called.
@@ -54,7 +57,20 @@ class CodeGenerator(object):
             except:
                 if isinstance(prev, CodeGenerator.StringFunctor):
                     return CodeGenerator.StringFunctor.to_varname(prev.obj)
-                return varname(prev)
+                return CodeGenerator.varname(prev)
+
+    @staticmethod
+    def varname(vn):
+        vn = varname(vn)
+        if len(vn) > max_var_len:
+            if vn in CodeGenerator._varname_registry:
+                vn = CodeGenerator._varname_registry[vn]
+            else:
+                vns = vn[:max_var_len] + '_' + "%.04d" % CodeGenerator._var_count
+                CodeGenerator._var_count += 1
+                CodeGenerator._varname_registry[vn] = vns
+                vn = vns
+        return vn
 
     def __init__(self, filename):
         self.f = None
@@ -121,7 +137,7 @@ from keras.models import Model  # noqa"""
         obj = eval(s)
 
         # get a variable name for the object (this will be what the script things it's called
-        varset = varname(obj) + ' = '
+        varset = CodeGenerator.varname(obj) + ' = '
 
         # re-indent the whole thing based on the line '<indent>varname = Object('
         sset = s.split('\n')
