@@ -58,6 +58,7 @@ class CodeGenerator(object):
 
     def __init__(self, filename):
         self.f = None
+        # XXX This is really brittle. At least balance the parens.
         self.lambda_re = re.compile("Lambda\(([^)]*)\)")
 
         if filename is not None:
@@ -95,11 +96,10 @@ from keras.models import Model  # noqa"""
                 return self.out
 
         args = []
-        for arg in args:
+        for arg in pre_args:
             if isinstance(arg, types.FunctionType):
-                import ipdb; ipdb.set_trace()
                 codestr = inspect.getsource(arg.func_code)
-                m = self.lambda_re(codestr)
+                m = self.lambda_re.search(codestr)
                 codestr = m.group(1)
                 args.append(RawRepr(codestr))
             else:
@@ -118,10 +118,7 @@ from keras.models import Model  # noqa"""
         s += ')'
 
         # generate the object
-        try:
-            obj = eval(s)
-        except Exception, e:
-            import ipdb; ipdb.set_trace()
+        obj = eval(s)
 
         # get a variable name for the object (this will be what the script things it's called
         varset = varname(obj) + ' = '
