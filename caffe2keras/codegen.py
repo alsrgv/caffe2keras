@@ -1,4 +1,7 @@
+import re
+import types
 import string
+import inspect
 import functools
 from keras.layers import *  # noqa
 from keras.models import Model  # noqa
@@ -55,6 +58,7 @@ class CodeGenerator(object):
 
     def __init__(self, filename):
         self.f = None
+        self.lambda_re = re.compile("Lambda\(([^)]*)\)")
 
         if filename is not None:
             imports = """from keras.layers import *  # noqa
@@ -79,9 +83,27 @@ from keras.models import Model  # noqa"""
             except:
                 return nodes
 
-    def invoked(self, a, *args, **kwargs):
+    def invoked(self, a, *pre_args, **kwargs):
         '''invoked is the general passthrough layer that creates the object
            creation string and then generats the StringFunctor based on it'''
+
+        class RawRepr(object):
+            def __init__(self, out):
+                self.out = out
+
+            def __repr__(self):
+                return self.out
+
+        args = []
+        for arg in args:
+            if isinstance(arg, types.FunctionType):
+                import ipdb; ipdb.set_trace()
+                codestr = inspect.getsource(arg.func_code)
+                m = self.lambda_re(codestr)
+                codestr = m.group(1)
+                args.append(RawRepr(codestr))
+            else:
+                args.append(arg)
 
         # Create the object
         s = "{}(".format(a)
@@ -92,11 +114,14 @@ from keras.models import Model  # noqa"""
         skwargs = ',\n'.join([str(x) + '=' + repr(kwargs[x]) for x in kwargs.keys()]).replace('?', 'None')
 
         # put the string form of args and kwargs in the braces
-        s += ',\n'.join([x for x in [sargs, skwargs] if x != '']).lstrip()
+        s += ',\n'.join([x for x in [sargs, skwargs] if x != ''])
         s += ')'
 
         # generate the object
-        obj = eval(s)
+        try:
+            obj = eval(s)
+        except Exception, e:
+            import ipdb; ipdb.set_trace()
 
         # get a variable name for the object (this will be what the script things it's called
         varset = varname(obj) + ' = '

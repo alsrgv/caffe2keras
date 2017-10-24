@@ -78,6 +78,12 @@ def construct(type_name, num_bottoms=1, num_tops=1):
     return take_func
 
 
+@construct('silence')
+def handle_silence(spec, bottom):
+    import ipdb; ipdb.set_trace()
+    return _cgen.Lambda(lambda x: x)(bottom)
+
+
 @construct('concat', num_bottoms='+')
 def handle_concat(spec, bottoms):
     axis = spec.concat_param.axis
