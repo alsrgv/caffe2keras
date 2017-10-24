@@ -80,7 +80,8 @@ def construct(type_name, num_bottoms=1, num_tops=1):
 
 @construct('silence')
 def handle_silence(spec, bottom):
-    return _cgen.Lambda(lambda x: x)(bottom)
+    # return _cgen.Lambda(lambda x: x)(bottom)
+    return None
 
 
 @construct('concat', num_bottoms='+')
@@ -557,10 +558,8 @@ def create_model(config, phase, input_dim):
         if type_of_layer in _converters:
             converter = _converters[type_of_layer]
             out_blobs = converter(layer, layer_bottom_blobs)
-            try:
-                assert len(out_blobs) == len(tops)
-            except Exception, e:
-                import ipdb; ipdb.set_trace()
+            out_blobs = [blob for blob in out_blobs if blob is not None]
+            assert len(out_blobs) == len(tops)
             for blob, blob_name in zip(out_blobs, tops):
                 blobs[blob_name] = blob
 
