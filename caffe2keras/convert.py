@@ -9,7 +9,6 @@ import google.protobuf
 import google.protobuf.text_format
 from caffe2keras.caffe_utils import (layer_type, normalize_layers,
                                      get_output_names, is_data_input)
-from caffe2keras.extra_layers import Select
 
 import numpy as np
 
@@ -356,7 +355,7 @@ def handle_slice(spec, bottom):
         else:
             slice_end = None
         top_name = spec.top[top_idx]
-        out = Select(slice_begin, slice_end, name=top_name)(_cgen.keras(bottom))
+        out = _cgen.Select(slice_begin, slice_end, name=top_name)(bottom)
         rv.append(out)
 
         if debug:
