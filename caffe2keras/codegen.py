@@ -143,9 +143,9 @@ from caffe2keras.extra_layers import Select"""
 
         # re-indent the whole thing based on the line '<indent>varname = Object('
         sset = s.split('\n')
-        prestr = ''.join(' ' for _ in range(indent))
+        prestr = ' ' * indent
         s = prestr + varset + sset[0]
-        prestr = ''.join(' ' for _ in range(string.find(s, '(') + 1))
+        prestr = ' ' * (string.find(s, '(') + 1)
         srest = [prestr + snext for snext in sset[1:]]
         s = '\n'.join([s] + srest)
 
