@@ -185,6 +185,7 @@ def handle_deconv(spec, bottom):
         data_format='channels_first')(bottom)
 
     crop = _cgen.Cropping2D(cropping=((pad_h, pad_h), (pad_w, pad_w)),
+                            name=spec.name + '_cropping',
                             data_format='channels_first')(deconv)
     return crop
 
