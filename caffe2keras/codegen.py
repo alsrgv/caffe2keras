@@ -14,7 +14,7 @@ max_var_len = 12
 
 def varname(obj):
     '''varname makes variable names from keras / tensorflow objects'''
-    n = obj.name.replace(':', '_')
+    n = obj.name.replace(':', '_C_')
     slash_index = string.find(n, '/')
     if slash_index >= 0:
         n = n[:slash_index]
