@@ -77,6 +77,15 @@ def construct(type_name, num_bottoms=1, num_tops=1):
     return take_func
 
 
+@construct('reshape')
+def handle_reshape(spec, bottom):
+    out_shape = [d for d in spec.reshape_param.shape.dim]
+    for i in range(len(out_shape)):
+        if out_shape[i] == 0:
+            out_shape[i] = int(bottom.shape[1:][i])
+    return _cgen.Reshape(target_shape=tuple(out_shape), name=spec.name)(bottom)
+
+
 @construct('silence')
 def handle_silence(spec, bottom):
     return None
